@@ -1,8 +1,10 @@
 import os
 
+import cStringIO
+
 from PIL import Image
 
-from django.core.files import File
+from django.core.files.base import ContentFile
 from django.conf import settings
 
 
@@ -11,21 +13,30 @@ def image_thumbnail(mediafile, options):
     default_options.update(options)
     options = default_options.copy()
     
-    filename = mediafile.file.name
+    original = mediafile.file
+    filename = original.name
     
     try:
         basename, format = filename.rsplit('.', 1)
     except ValueError:
         basename, format = filename, 'jpg'
     processed_name = '%s_thumb_%sx%sq%s.%s'% (basename, options['width'], options['height'], options['quality'], format)
-    processed_path = os.path.join(settings.MEDIA_ROOT, processed_name).encode('utf-8')
-    orig_path = os.path.join(settings.MEDIA_ROOT, filename).encode('utf-8')
     
-    image = Image.open(orig_path)
+    original.seek(0)
+    image = Image.open(original)
+    
+    # Convert to RGB if necessary
+    if image.mode not in ('L', 'RGB'):
+        image = image.convert('RGB')
+    
     image.thumbnail([options['width'], options['height']], Image.ANTIALIAS)
-    image.save(processed_path, image.format, quality=options['quality'])
+    memory_file = cStringIO.StringIO()
+    image.save(memory_file, image.format, quality=options['quality'])
     
-    return File(open(processed_path))
+    content_file = ContentFile(memory_file.getvalue())
+    memory_file.close()
+    
+    return {'content' : content_file, 'name' : processed_name}
 
 
 def image_cropscale(mediafile, options):
@@ -33,17 +44,22 @@ def image_cropscale(mediafile, options):
     default_options.update(options)
     options = default_options.copy()
     
-    filename = mediafile.file.name
+    original = mediafile.file
+    filename = original.name
     
     try:
         basename, format = filename.rsplit('.', 1)
     except ValueError:
         basename, format = filename, 'jpg'
     processed_name = '%s_crop_%sx%sq%s.%s'% (basename, options['width'], options['height'], options['quality'], format)
-    processed_path = os.path.join(settings.MEDIA_ROOT, processed_name).encode('utf-8')
-    orig_path = os.path.join(settings.MEDIA_ROOT, filename).encode('utf-8')
     
-    image = Image.open(orig_path)
+    original.seek(0)
+    image = Image.open(original)
+    format = image.format
+    
+    # Convert to RGB if necessary
+    if image.mode not in ('L', 'RGB'):
+        image = image.convert('RGB')
     
     src_width, src_height = image.size
     src_ratio = float(src_width) / float(src_height)
@@ -64,7 +80,10 @@ def image_cropscale(mediafile, options):
 
     image = image.crop((x_offset, y_offset, x_offset+int(crop_width), y_offset+int(crop_height)))
     image = image.resize((dst_width, dst_height), Image.ANTIALIAS)
+    memory_file = cStringIO.StringIO()
+    image.save(memory_file, format, quality=options['quality'])
     
-    image.save(processed_path, image.format, quality=options['quality'])
+    content_file = ContentFile(memory_file.getvalue())
+    memory_file.close()
     
-    return File(open(processed_path))
+    return {'content' : content_file, 'name' : processed_name}

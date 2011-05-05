@@ -18,11 +18,11 @@ class MediaVariation(models.Model):
     fs = default_storage(location=settings.FEINCMS_MEDIALIBRARY_ROOT,
                            base_url=settings.FEINCMS_MEDIALIBRARY_URL)
     
-    file = models.FileField(_('file'), max_length=255, upload_to=settings.FEINCMS_MEDIALIBRARY_UPLOAD_TO, storage=fs)
+    file = models.FileField(_('file'), max_length=255, upload_to=settings.FEINCMS_MEDIALIBRARY_UPLOAD_TO, storage=fs, blank=True, null=True)
     mediafile = models.ForeignKey(MediaFile, related_name="variations")
 
     processor = models.CharField(_('processor'), max_length=30, choices=(), help_text=_('Choose your processor. A processor makes a MediaFileVariation based of the options.'))
-    options = JSONField(blank=True, null=True)
+    options = JSONField(_('options'), blank=True, null=True)
     
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -38,9 +38,10 @@ class MediaVariation(models.Model):
         cls.processors_dict = dict(processors_list)
         cls._meta.get_field('processor').choices[:] = choices
     
-    def process(self, options):
-        self.file = self.processors_dict[self.processor](self.mediafile, options)
-        self.save()
+    def process(self):
+        processed = self.processors_dict[self.processor](self.mediafile, self.options)
+        self.file.save(processed['name'], processed['content'])
+        
         return self.file
     
 MediaVariation.register_processors(

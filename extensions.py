@@ -6,7 +6,15 @@ from models import MediaVariation
 
 
 def media_variation(cls, admin_cls):
+    """ extension for FeinCMS MediaFile, which adds mainly the function ``get_variation``.
+    insert also a tabular inline into the MediaFile Admin, to admin the variations """
+    
     def get_variation(self, processor_or_preselection, options=None, update=False):
+        """ returns the requested variation. there are 2 usecases:
+        #. a processor and options are given
+        #. a preselection is given
+        if the requested variation already exists, return this. """
+        
         if options:
             processor = processor_or_preselection
             variation, created = self.variations.get_or_create(processor=processor, options=options)
@@ -27,6 +35,9 @@ def media_variation(cls, admin_cls):
     admin_cls.inlines.append(VariationInline)
     
     def process_variations(modeladmin, request, queryset):
+        """ adminaction to reprocess all variations. use with care, because it will override user 
+        replaced variation with the processed one """
+        
         for mediafile in queryset:
             for variation in mediafile.variations.all():
                 variation.process()
@@ -35,6 +46,9 @@ def media_variation(cls, admin_cls):
 
 
 def auto_creation(cls, admin_cls):
+    """ extenstion for FeinCMS MediaFile to enable autocreation. autocreation creates automatically
+    variations if a new mediafile is created (only via admin). """
+    
     @classmethod
     def register_variation_auto_creation(cls, *auto_creation):
         cls.variation_auto_creation.extend(auto_creation)

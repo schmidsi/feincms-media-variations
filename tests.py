@@ -4,11 +4,10 @@ from django.test import TestCase
 
 from feincms.module.medialibrary.models import MediaFile
 
-from extensions import media_variation
-
 
 class ThumbnailTest(TestCase):
     def setUp(self):
+        from extensions import media_variation
         MediaFile.register_extension(media_variation)
         mediafile = MediaFile(file=File(open('feinheit/media_variations/fixtures/elephant_test_image.jpeg')))
         mediafile.save()
@@ -29,3 +28,21 @@ class ThumbnailTest(TestCase):
         cropscale = self.image.get_variation('image-cropscale', {'height' : 20, 'width' : 20})
         self.assertEqual(get_image_dimensions(cropscale.file), (20, 20))
         self.assertEqual(self.image.variations.all().count(), 2)
+    
+    def test_templatetags(self):
+        from templatetags.mediavariation_thumbnail import thumbnail, cropscale
+        
+        thumbnail(self.image)
+        thumbnail_url = thumbnail(self.image, '24x40q50')
+        self.assertEqual(type(thumbnail_url), unicode)
+        self.assertTrue('24x40q50' in thumbnail_url)
+        
+        cropscale(self.image)
+        cropscale_url = cropscale(self.image, '24x40q50')
+        self.assertEqual(type(cropscale_url), unicode)
+        self.assertTrue('24x40q50' in cropscale_url)
+        
+        ## this test crashes, because in the test enviroment, thumbnail_url has a ../ prefix. in 
+        ## realworld, it hasnt
+        #response = self.client.get('/' + thumbnail_url)
+        #self.assertEqual(response.status_code, 200)

@@ -1,4 +1,5 @@
 from django.conf import settings as django_settings
+from django.core.exceptions import ValidationError
 from django.core.urlresolvers import get_callable
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -22,6 +23,7 @@ class MediaVariation(models.Model):
     mediafile = models.ForeignKey(MediaFile, related_name="variations")
 
     processor = models.CharField(_('processor'), max_length=30, choices=(), help_text=_('Choose your processor. A processor makes a MediaFileVariation based of the options.'))
+    preselector = models.CharField(_('preselector'), max_length=50, choices=(), blank=True, null=True, help_text=_('Choose one of the prepared variation types.'))
     options = JSONField(_('options'), blank=True, null=True)
     
     created = models.DateTimeField(auto_now_add=True)
@@ -29,6 +31,8 @@ class MediaVariation(models.Model):
     
     processors = []
     processors_dict = {}
+    
+    preselectors = {}
     
     @classmethod
     def register_processors(cls, *processors):
@@ -38,11 +42,29 @@ class MediaVariation(models.Model):
         cls.processors_dict = dict(processors_list)
         cls._meta.get_field('processor').choices[:] = choices
     
+    @classmethod
+    def register_preselection(cls, *preselectors):
+        for preselector in preselectors:
+            cls.preselectors[preselector[0]] = (preselector[2], preselector[3])
+            cls._meta.get_field('preselector').choices.append((preselector[0], preselector[1]))
+    
     def process(self):
+        if self.preselector:
+            preselection = self.preselectors[self.preselector]
+            self.processor = preselection[0]
+            self.options = preselection[1]
+            
         processed = self.processors_dict[self.processor](self.mediafile, self.options)
         self.file.save(processed['name'], processed['content'])
         
         return self.file
+    
+    def clean(self):
+        if not self.preselector and not self.processor:
+            raise ValidationError(_('Specify either a preselector or a processor'))
+        
+        if not self.file:
+            self.process()
     
 MediaVariation.register_processors(
         ('image-cropscale', _('Image cropscale'), image_cropscale),

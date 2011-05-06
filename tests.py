@@ -1,6 +1,7 @@
 from django.core.files import File
 from django.core.files.images import get_image_dimensions
 from django.test import TestCase
+from django.utils.translation import ugettext_lazy as _
 
 from feincms.module.medialibrary.models import MediaFile
 
@@ -46,3 +47,22 @@ class ThumbnailTest(TestCase):
         ## realworld, it hasnt
         #response = self.client.get('/' + thumbnail_url)
         #self.assertEqual(response.status_code, 200)
+        
+    def test_preselection(self):
+        from models import MediaVariation
+        MediaVariation.register_preselection(
+            ('cropscale50x50', _('50px Square Thumbnail'), 'image-cropscale', {'height' : 50, 'width' : 50}),
+            ('thumbnail150x99999', _('Max 150px wide image'), 'image-thumbnail', {'height' : 150, 'width' : 99999}),
+        )
+        processed = self.image.get_variation('cropscale50x50')
+        self.assertEqual(get_image_dimensions(processed.file), (50, 50))
+        self.assertEqual(processed.processor, 'image-cropscale')
+        self.assertEqual(processed.options, {'height' : 50, 'width' : 50})
+    
+    def test_autocreation(self):
+        from extensions import auto_creation
+        MediaFile.register_extension(auto_creation)
+        MediaFile.register_variation_auto_creation('cropscale50x50', 'thumbnail150x99999')
+        self.assertEqual(MediaFile.variation_auto_creation, ['cropscale50x50', 'thumbnail150x99999'])
+        processed = self.image.get_variation('cropscale50x50')
+        self.assertEqual(get_image_dimensions(processed.file), (50, 50))

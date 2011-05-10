@@ -63,4 +63,13 @@ Usage
     from feinheit.media_variations.extensions import auto_creation
     MediaFile.register_extension(auto_creation)
     MediaFile.register_variation_auto_creation('cropscale50x50', 'thumbnail150x99999')
+
+
+TODO
+====
+
+- refactor code: f.e. redundant code in processors.py
+- multiple processors per MediaVariation
+- processors should check, if they can handle a mediafile type (cropscaling audiofiles should throw some error)
+
 """

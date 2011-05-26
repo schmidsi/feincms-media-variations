@@ -1,6 +1,7 @@
 from django import template
 
 from feincms.module.medialibrary.models import MediaFile
+from models import MediaVariation
 
 register = template.Library()
 
@@ -50,4 +51,22 @@ def cropscale(mediafile, arg='200x200q90'):
         return u'<!-- need feincms mediafile to work -->'
     
     variation = mediafile.get_variation('image-cropscale', get_options_from_arg(arg))
+    return unicode(variation.file.url)
+
+
+@register.filter
+def mediavariation(mediafile, preselection):
+    if not preselection:
+        try:
+            preselection = MediaVariation.preselectors.items()[0][0]
+        except IndexError:
+            return u'<!-- no preselection given and no preselections configured -->'
+    
+    if not type(mediafile) == MediaFile:
+        return u'<!-- need feincms mediafile to work -->'
+    
+    if not preselection in MediaVariation.preselectors:
+        return u'<!-- preselection "%s" not defined -->' % preselection
+    
+    variation = mediafile.get_variation(preselection)
     return unicode(variation.file.url)

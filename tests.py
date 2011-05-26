@@ -58,8 +58,18 @@ class ThumbnailTest(TestCase):
         self.assertEqual(get_image_dimensions(processed.file), (50, 50))
         self.assertEqual(processed.processor, 'image-cropscale')
         self.assertEqual(processed.options, {'height' : 50, 'width' : 50})
+        
+        from templatetags.mediavariation_thumbnail import mediavariation
+        variation_url = mediavariation(self.image, 'cropscale50x50')
+        self.assertEqual(type(variation_url), unicode)
+        self.assertTrue('50x50' in variation_url)
     
     def test_autocreation(self):
+        from models import MediaVariation
+        MediaVariation.register_preselection(
+            ('cropscale50x50', _('50px Square Thumbnail'), 'image-cropscale', {'height' : 50, 'width' : 50}),
+            ('thumbnail150x99999', _('Max 150px wide image'), 'image-thumbnail', {'height' : 150, 'width' : 99999}),
+        )
         from extensions import auto_creation
         MediaFile.register_extension(auto_creation)
         MediaFile.register_variation_auto_creation('cropscale50x50', 'thumbnail150x99999')

@@ -1,26 +1,25 @@
 import os
 
-import cStringIO
+import cStringIO, ImageFilter
 
 from PIL import Image
 
-from django.core.files.base import ContentFile
 from django.conf import settings
 
 
-def image_thumbnail(mediafile, options):
-    default_options = {'quality' : 90}
-    default_options.update(options)
-    options = default_options.copy()
-    
-    original = mediafile.file
-    filename = original.name
-    
+def get_processed_name(filename, suffix):
     try:
         basename, format = filename.rsplit('.', 1)
     except ValueError:
         basename, format = filename, 'jpg'
-    processed_name = '%s_thumb_%sx%sq%s.%s'% (basename, options['width'], options['height'], options['quality'], format)
+    return '%s_%s.%s'% (basename, suffix, format)
+
+
+def image_thumbnail(file, filename, options):
+    default_options = {'quality' : 90}
+    default_options.update(options)
+    options = default_options
+    original = file
     
     original.seek(0)
     image = Image.open(original)
@@ -33,26 +32,16 @@ def image_thumbnail(mediafile, options):
     memory_file = cStringIO.StringIO()
     image.save(memory_file, image.format, quality=options['quality'])
     
-    content_file = ContentFile(memory_file.getvalue())
-    memory_file.close()
-    
-    return {'content' : content_file, 'name' : processed_name}
+    processed_name = get_processed_name(filename, 'thumb_%sx%sq%s' % (options['width'], options['height'], options['quality']))
+    return {'memfile' : memory_file, 'name' : processed_name}
 
 
 def image_cropscale(mediafile, options):
     default_options = {'quality' : 90}
     default_options.update(options)
-    options = default_options.copy()
-    
+    options = default_options
     original = mediafile.file
-    filename = original.name
-    
-    try:
-        basename, format = filename.rsplit('.', 1)
-    except ValueError:
-        basename, format = filename, 'jpg'
-    processed_name = '%s_crop_%sx%sq%s.%s'% (basename, options['width'], options['height'], options['quality'], format)
-    
+
     original.seek(0)
     image = Image.open(original)
     format = image.format
@@ -86,4 +75,23 @@ def image_cropscale(mediafile, options):
     content_file = ContentFile(memory_file.getvalue())
     memory_file.close()
     
+    processed_name = get_processed_name(original, 'crop_%sx%sq%s' % (options['width'], options['height'], options['quality']))
+    return {'content' : content_file, 'name' : processed_name}
+
+
+def image_blur(mediafile, options):
+    default_options = {'quality' : 90}
+    default_options.update(options)
+    options = default_options
+    original = mediafile.file
+    memory_file = cStringIO.StringIO()
+    image = Image.open(original)
+    format = image.format
+    
+    image = image.filter(ImageFilter.BLUR)
+    image.save(memory_file, format, quality=options['quality'])
+    content_file = ContentFile(memory_file.getvalue())
+    memory_file.close()
+    
+    processed_name = get_processed_name(original, 'blur_q%s' % options['quality'])
     return {'content' : content_file, 'name' : processed_name}

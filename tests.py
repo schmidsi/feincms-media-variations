@@ -20,15 +20,18 @@ class ThumbnailTest(TestCase):
         
     def test_processing(self):
         self.assertEqual(self.image.variations.all().count(), 0)
-        thumbnail = self.image.get_variation('image-thumbnail', {'height' : 34, 'width' : 40})
+        thumbnail = self.image.variations.get_by_options('image-thumbnail', {'height' : 34, 'width' : 40})
         self.assertEqual(get_image_dimensions(thumbnail.file), (40, 34))
         self.assertEqual(self.image.variations.all().count(), 1)
-        # get_variation only creates a variation if it does not exists
-        self.image.get_variation('image-thumbnail', {'width' : 40, 'height' : 34})
+        # variations.get_by_options only creates a variation if it does not exists
+        self.image.variations.get_by_options('image-thumbnail', {'width' : 40, 'height' : 34})
         self.assertEqual(self.image.variations.all().count(), 1)
-        cropscale = self.image.get_variation('image-cropscale', {'height' : 20, 'width' : 20})
+        cropscale = self.image.variations.get_by_options('image-cropscale', {'height' : 20, 'width' : 20})
         self.assertEqual(get_image_dimensions(cropscale.file), (20, 20))
         self.assertEqual(self.image.variations.all().count(), 2)
+        #blur = self.image.variations.get_by_options('image-blur', {})
+        #self.assertEqual(get_image_dimensions(blur.file), (404, 346))
+        #self.assertEqual(self.image.variations.all().count(), 3)
     
     def test_templatetags(self):
         from templatetags.mediavariation_thumbnail import thumbnail, cropscale
@@ -54,7 +57,7 @@ class ThumbnailTest(TestCase):
             ('cropscale50x50', _('50px Square Thumbnail'), 'image-cropscale', {'height' : 50, 'width' : 50}),
             ('thumbnail150x99999', _('Max 150px wide image'), 'image-thumbnail', {'height' : 150, 'width' : 99999}),
         )
-        processed = self.image.get_variation('cropscale50x50')
+        processed = self.image.variations.get_by_preselection('cropscale50x50')
         self.assertEqual(get_image_dimensions(processed.file), (50, 50))
         self.assertEqual(processed.processor, 'image-cropscale')
         self.assertEqual(processed.options, {'height' : 50, 'width' : 50})
@@ -74,5 +77,11 @@ class ThumbnailTest(TestCase):
         MediaFile.register_extension(auto_creation)
         MediaFile.register_variation_auto_creation('cropscale50x50', 'thumbnail150x99999')
         self.assertEqual(MediaFile.variation_auto_creation, ['cropscale50x50', 'thumbnail150x99999'])
-        processed = self.image.get_variation('cropscale50x50')
+        processed = self.image.variations.get_by_preselection('cropscale50x50')
         self.assertEqual(get_image_dimensions(processed.file), (50, 50))
+    
+    #def multiprocessors_test(self):
+        #thumbnail = self.image.variations.get_by_options(('image-thumbnail', {'height' : 34, 'width' : 40}), 
+        #                                     ('image-blur'))
+        #self.assertEqual(get_image_dimensions(thumbnail.file), (40, 34))
+        #self.assertEqual(self.image.variations.all().count(), 1)

@@ -38,7 +38,7 @@ def thumbnail(mediafile, arg='200x200q90'):
     if not type(mediafile) == MediaFile:
         return u'<!-- need feincms mediafile to work -->'
     
-    variation = mediafile.get_variation('image-thumbnail', get_options_from_arg(arg))
+    variation = mediafile.variations.get_by_options('image-thumbnail', get_options_from_arg(arg))
     return unicode(variation.file.url)
 
 
@@ -50,7 +50,7 @@ def cropscale(mediafile, arg='200x200q90'):
     if not type(mediafile) == MediaFile:
         return u'<!-- need feincms mediafile to work -->'
     
-    variation = mediafile.get_variation('image-cropscale', get_options_from_arg(arg))
+    variation = mediafile.variations.get_by_options('image-cropscale', get_options_from_arg(arg))
     return unicode(variation.file.url)
 
 
@@ -68,5 +68,5 @@ def mediavariation(mediafile, preselection):
     if not preselection in MediaVariation.preselectors:
         return u'<!-- preselection "%s" not defined -->' % preselection
     
-    variation = mediafile.get_variation(preselection)
+    variation = mediafile.variations.get_by_preselection(preselection)
     return unicode(variation.file.url)

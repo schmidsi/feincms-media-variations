@@ -39,8 +39,7 @@ def media_variation(cls, admin_cls):
         replaced variation with the processed one """
         
         for mediafile in queryset:
-            for variation in mediafile.variations.all():
-                variation.process()
+            mediafile.variations.all().reprocess()
     process_variations.short_description = _('reprocess all variations')
     admin_cls.actions.append(process_variations)
 

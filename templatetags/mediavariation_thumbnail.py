@@ -39,6 +39,7 @@ def thumbnail(mediafile, arg='200x200q90'):
         return u'<!-- need feincms mediafile to work -->'
     
     variation = mediafile.get_variation('image-thumbnail', get_options_from_arg(arg))
+    print variation.mediafile
     return unicode(variation.file.url)
 
 

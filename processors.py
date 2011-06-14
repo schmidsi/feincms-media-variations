@@ -17,13 +17,14 @@ def image_thumbnail(mediafile, options):
     filename = original.name
     
     try:
-        basename, format = filename.rsplit('.', 1)
+        basename, extension = filename.rsplit('.', 1)
     except ValueError:
-        basename, format = filename, 'jpg'
-    processed_name = '%s_thumb_%sx%sq%s.%s'% (basename, options['width'], options['height'], options['quality'], format)
+        basename, extension = filename, 'jpg'
+    processed_name = '%s_thumb_%sx%sq%s.%s'% (basename, options['width'], options['height'], options['quality'], extension)
     
     original.seek(0)
     image = Image.open(original)
+    format = image.format
     
     # Convert to RGB if necessary
     if image.mode not in ('L', 'RGB'):
@@ -31,7 +32,7 @@ def image_thumbnail(mediafile, options):
     
     image.thumbnail([options['width'], options['height']], Image.ANTIALIAS)
     memory_file = cStringIO.StringIO()
-    image.save(memory_file, image.format, quality=options['quality'])
+    image.save(memory_file, format, quality=options['quality'])
     
     content_file = ContentFile(memory_file.getvalue())
     memory_file.close()
@@ -48,10 +49,10 @@ def image_cropscale(mediafile, options):
     filename = original.name
     
     try:
-        basename, format = filename.rsplit('.', 1)
+        basename, extension = filename.rsplit('.', 1)
     except ValueError:
-        basename, format = filename, 'jpg'
-    processed_name = '%s_crop_%sx%sq%s.%s'% (basename, options['width'], options['height'], options['quality'], format)
+        basename, extension = filename, 'jpg'
+    processed_name = '%s_crop_%sx%sq%s.%s'% (basename, options['width'], options['height'], options['quality'], extension)
     
     original.seek(0)
     image = Image.open(original)

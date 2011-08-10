@@ -8,7 +8,7 @@ from feincms import settings
 from feincms.contrib.fields import JSONField
 from feincms.module.medialibrary.models import MediaFile
 
-from processors import image_cropscale, image_thumbnail, image_blur
+from processors import image_cropscale, image_thumbnail, image_blur, image_cropblur
 
 
 class MediaVariation(models.Model):
@@ -70,4 +70,5 @@ MediaVariation.register_processors(
         ('image-cropscale', _('Image cropscale'), image_cropscale),
         ('image-thumbnail', _('Image thumbnail'), image_thumbnail),
         ('image-blur', _('Image blur'), image_blur),
+        ('image-cropblur', _('Image crop & blur'), image_cropblur),
     )

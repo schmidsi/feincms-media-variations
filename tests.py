@@ -37,6 +37,11 @@ class ThumbnailTest(TestCase):
         blur = self.image.get_variation('image-blur', {'amount' : 10 })
         self.assertEqual(get_image_dimensions(blur.file), (404, 346))
         self.assertEqual(self.image.variations.all().count(), 3)
+        
+        #blur crop
+        cropblur = self.image.get_variation('image-cropblur', {'amount' : 10, 'height' : 20, 'width' : 20 })
+        self.assertEqual(get_image_dimensions(cropblur.file), (20, 20))
+        self.assertEqual(self.image.variations.all().count(), 4)
     
     def test_templatetags(self):
         from templatetags.mediavariation_thumbnail import thumbnail, cropscale

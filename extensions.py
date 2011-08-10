@@ -21,6 +21,8 @@ def media_variation(cls, admin_cls):
         else:
             preselection = processor_or_preselection
             variation, created = self.variations.get_or_create(preselector=preselection)
+            if variation.options != MediaVariation.preselectors[preselection][1]:
+                update = True
         
         if created or update:
             variation.process()

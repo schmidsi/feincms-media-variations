@@ -2,7 +2,7 @@ import os
 
 import cStringIO
 
-from PIL import Image
+from PIL import Image, ImageEnhance
 
 from django.core.files.base import ContentFile
 from django.conf import settings
@@ -81,6 +81,42 @@ def image_cropscale(mediafile, options):
 
     image = image.crop((x_offset, y_offset, x_offset+int(crop_width), y_offset+int(crop_height)))
     image = image.resize((dst_width, dst_height), Image.ANTIALIAS)
+    memory_file = cStringIO.StringIO()
+    image.save(memory_file, format, quality=options['quality'])
+    
+    content_file = ContentFile(memory_file.getvalue())
+    memory_file.close()
+    
+    return {'content' : content_file, 'name' : processed_name}
+
+
+def image_blur(mediafile, options):
+    default_options = {'amount' : 1, 'quality' : 90 }
+    default_options.update(options)
+    options = default_options.copy()
+    
+    original = mediafile.file
+    filename = original.name
+    
+    try:
+        basename, extension = filename.rsplit('.', 1)
+    except ValueError:
+        basename, extension = filename, 'jpg'
+    processed_name = '%s_blur%sq%s.%s'% (basename, options['amount'], options['quality'], extension)
+    
+    original.seek(0)
+    image = Image.open(original)
+    format = image.format
+    
+    # Convert to RGB if necessary
+    if image.mode not in ('L', 'RGB'):
+        image = image.convert('RGB')
+    
+    
+    for i in range(options['amount']):
+        #image = image.filter(ImageFilter.BLUR) # sharpnes makes the nicer blur
+        image = ImageEnhance.Sharpness(image).enhance(0.0)
+    
     memory_file = cStringIO.StringIO()
     image.save(memory_file, format, quality=options['quality'])
     

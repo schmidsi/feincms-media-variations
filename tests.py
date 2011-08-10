@@ -20,15 +20,23 @@ class ThumbnailTest(TestCase):
         
     def test_processing(self):
         self.assertEqual(self.image.variations.all().count(), 0)
+        
         thumbnail = self.image.get_variation('image-thumbnail', {'height' : 34, 'width' : 40})
         self.assertEqual(get_image_dimensions(thumbnail.file), (40, 34))
         self.assertEqual(self.image.variations.all().count(), 1)
+        
         # get_variation only creates a variation if it does not exists
         self.image.get_variation('image-thumbnail', {'width' : 40, 'height' : 34})
         self.assertEqual(self.image.variations.all().count(), 1)
+        
         cropscale = self.image.get_variation('image-cropscale', {'height' : 20, 'width' : 20})
         self.assertEqual(get_image_dimensions(cropscale.file), (20, 20))
         self.assertEqual(self.image.variations.all().count(), 2)
+        
+        #blur
+        blur = self.image.get_variation('image-blur', {'amount' : 10 })
+        self.assertEqual(get_image_dimensions(blur.file), (404, 346))
+        self.assertEqual(self.image.variations.all().count(), 3)
     
     def test_templatetags(self):
         from templatetags.mediavariation_thumbnail import thumbnail, cropscale

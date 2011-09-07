@@ -16,8 +16,8 @@ class MediaVariation(models.Model):
                                     'django.core.files.storage.FileSystemStorage')
     default_storage = get_callable(default_storage_class)
 
-    fs = default_storage(location=settings.FEINCMS_MEDIALIBRARY_ROOT,
-                           base_url=settings.FEINCMS_MEDIALIBRARY_URL)
+    fs = default_storage(location=django_settings.MEDIA_ROOT,
+                           base_url=django_settings.MEDIA_URL)
     
     file = models.FileField(_('file'), max_length=255, upload_to=settings.FEINCMS_MEDIALIBRARY_UPLOAD_TO, storage=fs, blank=True, null=True)
     mediafile = models.ForeignKey(MediaFile, related_name="variations")

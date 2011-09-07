@@ -51,7 +51,7 @@ Usage
 
 - if you want to define some preselections, here is an example::
 
-    from models import MediaVariation
+    from feincms_media_variations.models import MediaVariation
     MediaVariation.register_preselection(
         ('cropscale50x50', _('50px Square Thumbnail'), 'image-cropscale', {'height' : 50, 'width' : 50}),
         ('thumbnail150x99999', _('Max 150px wide image'), 'image-thumbnail', {'height' : 150, 'width' : 99999}),

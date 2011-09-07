@@ -1,7 +1,7 @@
 from django import template
 
 from feincms.module.medialibrary.models import MediaFile
-from feinheit.media_variations.models import MediaVariation
+from feincms_media_variations.models import MediaVariation
 
 register = template.Library()
 

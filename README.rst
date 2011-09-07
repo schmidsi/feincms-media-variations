@@ -1,4 +1,3 @@
-"""
 ========================
 FeinCMS Media Variations
 ========================
@@ -42,12 +41,12 @@ Usage
 =====
 
 
-- add :mod:`feinheit.media_variations` to your :setting:`INSTALLED_APPS`
-- run  ``python manage.py syncdb`` because an new table will be created
+- add :mod:`feincms_media_variations` to your :setting:`INSTALLED_APPS`
+- run  ``python manage.py syncdb`` because a new table will be created
 - monkey-patch the MediaFile Class. best in  ``models.py`` of the base app (to be organized)::
 
     from feincms.module.medialibrary.models import MediaFile
-    from feinheit.media_variations.extensions import media_variation
+    from feincms_media_variations.extensions import media_variation
     MediaFile.register_extension(media_variation)
 
 - if you want to define some preselections, here is an example::
@@ -71,5 +70,3 @@ TODO
 - refactor code: f.e. redundant code in processors.py
 - multiple processors per MediaVariation
 - processors should check, if they can handle a mediafile type (cropscaling audiofiles should throw some error)
-
-"""

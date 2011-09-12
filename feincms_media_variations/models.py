@@ -34,16 +34,12 @@ class VariationManager(models.Manager):
             variation.process()
         return variation
     
-    def get_by_options(self, update=False, options=None, *args):
-        if not options:
-            if type(args[0]) == str:
-                options = [args[0], args[1]]
-            if type(args[0]) in (list, tuple):
-                options = args[0]
-        if type(options) == tuple:
-            options = list(options)
-        
-        variation, created = self.get_or_create(options=options)
+    def get_by_options(self, update=False, **kwargs):
+        """ option is lowest level access: define the processor-chain and the options"""
+
+        import pdb; pdb.set_trace()
+
+        variation, created = self.get_or_create(processors=processors, options=options)
         if created and update:
             variation.process()
         return variation
@@ -68,16 +64,13 @@ class MediaVariation(models.Model):
     
     objects = VariationManager()
     
-    processors = []
-    processors_dict = {}
-    
+    registered_processors = []
+
     preselectors = {}
     
     @classmethod
     def register_processors(cls, *processors):
-        cls.processors[0:0] = processors
-        processors_list = [ (t[0], t[2]) for t in cls.processors ]
-        cls.processors_dict = dict(processors_list)
+        cls.registered_processors[0:0] = processors
     
     @classmethod
     def register_preselection(cls, *preselectors):
@@ -90,10 +83,8 @@ class MediaVariation(models.Model):
             preselection = self.preselectors[self.preselector]
             self.processor = preselection[0]
             self.options = preselection[1]
-        
-        import pdb;pdb.set_trace()
 
-        
+
         memfile = self.mediafile.file
         filename = memfile.name
         for command in self.options:

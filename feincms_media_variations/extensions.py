@@ -1,4 +1,4 @@
-from django import forms
+from django.core.exceptions import MultipleObjectsReturned
 from django.contrib import admin
 from django.utils.translation import ugettext_lazy as _
 
@@ -17,10 +17,24 @@ def media_variation(cls, admin_cls):
         
         if options:
             processor = processor_or_preselection
-            variation, created = self.variations.get_or_create(processor=processor, options=options)
+
+            try:
+                variation, created = self.variations.get_or_create(processor=processor, options=options)
+            except MultipleObjectsReturned:
+                variation = self.variations.filter(processor=processor, options=options)[0]
+                for spare_variation in self.variations.filter(processor=processor, options=options)[1:]:
+                    spare_variation.delete()
         else:
             preselection = processor_or_preselection
-            variation, created = self.variations.get_or_create(preselector=preselection)
+
+            try:
+                variation, created = self.variations.get_or_create(preselector=preselection)
+            except MultipleObjectsReturned:
+                created = False
+                variation = self.variations.filter(preselector=preselection)[0]
+                for spare_variation in self.variations.filter(preselector=preselection)[1:]:
+                    spare_variation.delete()
+
             if variation.options != MediaVariation.preselectors[preselection][1]:
                 update = True
         

@@ -56,8 +56,6 @@ def cropscale(mediafile, arg='200x200q90'):
 
 @register.filter
 def mediavariation(mediafile, preselection):
-    print mediafile
-
     if not preselection:
         try:
             preselection = MediaVariation.preselectors.items()[0][0]

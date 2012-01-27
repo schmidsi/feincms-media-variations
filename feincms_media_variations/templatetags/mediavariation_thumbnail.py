@@ -35,7 +35,7 @@ def thumbnail(mediafile, arg='200x200q90'):
     if not (mediafile and 'x' in arg):
         return u'<!-- missing arguments in thumbnail -->'
     
-    if not type(mediafile) == MediaFile:
+    if not isinstance(mediafile, MediaFile):
         return u'<!-- need feincms mediafile to work -->'
     
     variation = mediafile.get_variation('image-thumbnail', get_options_from_arg(arg))
@@ -47,8 +47,8 @@ def cropscale(mediafile, arg='200x200q90'):
     if not (mediafile and 'x' in arg):
         return u'<!-- missing arguments in thumbnail -->'
     
-    if not type(mediafile) == MediaFile:
-        return u'<!-- need feincms mediafile to work -->'
+    if not isinstance(mediafile, MediaFile):
+        return u'<!-- need feincms mediafile instance to work -->'
     
     variation = mediafile.get_variation('image-cropscale', get_options_from_arg(arg))
     return unicode(variation.file.url)
@@ -56,13 +56,15 @@ def cropscale(mediafile, arg='200x200q90'):
 
 @register.filter
 def mediavariation(mediafile, preselection):
+    print mediafile
+
     if not preselection:
         try:
             preselection = MediaVariation.preselectors.items()[0][0]
         except IndexError:
             return u'<!-- no preselection given and no preselections configured -->'
     
-    if not type(mediafile) == MediaFile:
+    if not isinstance(mediafile, MediaFile):
         return u'<!-- need feincms mediafile to work -->'
     
     if not preselection in MediaVariation.preselectors:

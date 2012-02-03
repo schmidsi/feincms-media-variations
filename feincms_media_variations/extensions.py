@@ -37,6 +37,8 @@ def media_variation(cls, admin_cls):
 
             if variation.options != MediaVariation.preselectors[preselection][1]:
                 update = True
+            if not variation.file:
+                update = True
         
         if created or update:
             variation.process()
